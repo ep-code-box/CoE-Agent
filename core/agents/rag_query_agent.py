@@ -4,9 +4,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .models import AgentResult, AgentTask
-from ..services.rag_client import RagClient
-from ..tools.text_utils import synthesize_answer
+from core.models import AgentResult, AgentTask
+from services.rag_client import RagClient
+from tools.text_utils import synthesize_answer
 
 logger = logging.getLogger(__name__)
 
