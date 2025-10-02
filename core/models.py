@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 
 
 @dataclass(slots=True)
@@ -24,6 +24,51 @@ class AgentResult:
     context_snippets: list[str] = field(default_factory=list)
     metadata: dict[str, Any] | None = None
     steps: Sequence["AgentStepResult"] | None = None
+
+
+@dataclass(slots=True)
+class DeveloperContext:
+    """Captures the execution backdrop for guide-style agents."""
+
+    profile_name: str
+    working_paths: tuple[str, ...] = ()
+    target_branch: str | None = None
+    language: str | None = None
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass(slots=True)
+class GuidanceRecommendation:
+    """Represents a single actionable suggestion for the developer."""
+
+    title: str
+    detail: str
+    rationale: tuple[str, ...] = ()
+    actions: tuple[str, ...] = ()
+    priority: Literal["high", "medium", "low"] = "medium"
+    tags: tuple[str, ...] = ()
+
+
+@dataclass(slots=True)
+class SessionMemory:
+    """Lightweight session memory shared between guide agent nodes."""
+
+    session_id: str
+    recent_summary: str = ""
+    acknowledged_recommendations: tuple[str, ...] = ()
+    pending_questions: tuple[str, ...] = ()
+    preferences: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class GuideAgentResult:
+    """Aggregated response returned by the guide agent."""
+
+    summary: str
+    plan: Sequence[str]
+    recommendations: Sequence[GuidanceRecommendation]
+    insights: Sequence[str]
+    memory: SessionMemory
 
 
 class RagOperationType(StrEnum):

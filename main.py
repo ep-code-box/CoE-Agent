@@ -7,6 +7,7 @@ import json
 import logging
 import sys
 import uuid
+from dataclasses import asdict
 from typing import Any
 
 from core.agents import AGENT_REGISTRY, RagQueryAgent, RagWorkflowAgent
@@ -53,12 +54,51 @@ def build_parser() -> argparse.ArgumentParser:
         "--workflow",
         help="Workflow definition as JSON array when running the workflow agent",
     )
+    parser.add_argument(
+        "--profile",
+        default="default",
+        help="Guide agent profile name",
+    )
+    parser.add_argument(
+        "--paths",
+        nargs="*",
+        default=None,
+        help="File paths to provide as context for the guide agent",
+    )
+    parser.add_argument(
+        "--language",
+        choices=("ko", "en"),
+        default="ko",
+        help="Preferred language for guide agent responses",
+    )
     return parser
 
 
 async def run_cli() -> int:
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.agent == "guide":
+        if args.query is None:
+            parser.error("guide agent requires a query prompt")
+        guide_cls = AGENT_REGISTRY["guide"]
+        async with RagClient(args.base_url) as rag_client:
+            guide_agent = guide_cls(rag_client=rag_client)  # type: ignore[call-arg]
+            result = await guide_agent.run(
+                prompt=args.query,
+                profile=args.profile,
+                language=args.language,
+                paths=args.paths or (),
+            )
+        payload = {
+            "summary": result.summary,
+            "plan": list(result.plan),
+            "insights": list(result.insights),
+            "recommendations": [asdict(rec) for rec in result.recommendations],
+            "memory": asdict(result.memory),
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
 
     async with RagClient(args.base_url) as rag_client:
         if args.agent == "workflow":

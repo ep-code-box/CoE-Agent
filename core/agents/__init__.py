@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+from .guide_agent.agent import GuideAgent
 from .rag_query_agent import RagQueryAgent
 from .rag_workflow_agent import RagWorkflowAgent
 
@@ -12,11 +13,13 @@ AgentFactory = Callable[..., object]
 AGENT_REGISTRY: dict[str, AgentFactory] = {
     "query": RagQueryAgent,
     "workflow": RagWorkflowAgent,
+    "guide": GuideAgent,
 }
 
 __all__ = [
     "RagQueryAgent",
     "RagWorkflowAgent",
+    "GuideAgent",
     "AGENT_REGISTRY",
     "AgentFactory",
 ]
